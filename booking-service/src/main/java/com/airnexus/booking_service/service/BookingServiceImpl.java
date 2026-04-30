@@ -300,6 +300,9 @@ import com.airnexus.booking_service.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -414,6 +417,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Cacheable(value = "bookings", key = "#id")
     public BookingDTO getBookingById(String id) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new CustomExceptions.BookingNotFoundException(
@@ -423,6 +427,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Cacheable(value = "bookingByPnr", key = "#pnrCode")
     public BookingDTO getBookingByPnr(String pnrCode) {
         Booking booking = bookingRepository.findByPnrCode(pnrCode)
                 .orElseThrow(() -> new CustomExceptions.InvalidPnrException(
@@ -448,6 +453,10 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "bookings", key = "#id"),
+            @CacheEvict(value = "bookingByPnr", allEntries = true)
+    })
     @Transactional
     public BookingDTO cancelBooking(String id) {
         Booking booking = bookingRepository.findById(id)
@@ -503,6 +512,10 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "bookings", key = "#id"),
+            @CacheEvict(value = "bookingByPnr", allEntries = true)
+    })
     @Transactional
     public BookingDTO confirmBooking(String id, String paymentId) {
         Booking booking = bookingRepository.findById(id)

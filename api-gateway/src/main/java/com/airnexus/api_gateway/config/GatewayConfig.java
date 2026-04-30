@@ -25,6 +25,10 @@ public class GatewayConfig {
                         .path("/api/auth/register", "/api/auth/login", "/api/auth/google/**")
                         .uri("lb://auth-service"))
 
+                .route("auth-oauth", r -> r
+                        .path("/oauth2/**", "/login/oauth2/**")
+                        .uri("lb://auth-service"))
+
                 // Protected routes (Any authenticated user)
                 .route("auth-profile", r -> r
                         .path("/api/auth/profile", "/api/auth/password")
@@ -148,6 +152,12 @@ public class GatewayConfig {
                 .route("notification-admin", r -> r
                         .path("/api/notifications/broadcast")
                         .filters(f -> f.filter(jwtFilter.apply(configWithRoles("ADMIN"))))
+                        .uri("lb://notification-service"))
+
+                // Protected - Individual notification actions (mark read / delete)
+                .route("notification-individual", r -> r
+                        .path("/api/notifications/{id}/read", "/api/notifications/{id}")
+                        .filters(f -> f.filter(jwtFilter.apply(new JwtAuthenticationFilter.Config())))
                         .uri("lb://notification-service"))
 
                 .build();

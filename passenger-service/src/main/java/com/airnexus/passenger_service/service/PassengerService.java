@@ -9,6 +9,7 @@ public interface PassengerService {
     PassengerDTO addPassenger(PassengerDTO passengerDTO);
     List<PassengerDTO> addPassengers(List<PassengerDTO> passengers);
     PassengerDTO getPassengerById(String id);
+    List<PassengerDTO> getPassengersByPnr(String pnrCode);
     PassengerDTO getByTicketNumber(String ticketNumber);
     List<PassengerDTO> getPassengersByBooking(String bookingId);
     PassengerDTO updatePassenger(String id, PassengerDTO passengerDTO);

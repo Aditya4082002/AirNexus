@@ -212,7 +212,6 @@ public class PaymentServiceImpl implements PaymentService {
             Mac mac = Mac.getInstance("HmacSHA256");
             SecretKeySpec secretKey = new SecretKeySpec(razorpayKeySecret.getBytes(), "HmacSHA256");
             mac.init(secretKey);
-
             byte[] hash = mac.doFinal(payload.getBytes());
             StringBuilder hexString = new StringBuilder();
             for (byte b : hash) {

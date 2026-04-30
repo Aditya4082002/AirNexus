@@ -145,14 +145,23 @@ public class SeatServiceImpl implements SeatService {
                         "Seat not found with ID: " + seatId
                 ));
 
-        if (seat.getStatus() != Seat.SeatStatus.HELD) {
+        // Allow confirmation from AVAILABLE or HELD.
+        // AVAILABLE happens when passenger-service assigns a seat directly (internal Feign call,
+        // no gateway hold step). HELD happens when the user held the seat from the seat map UI first.
+        if (seat.getStatus() == Seat.SeatStatus.CONFIRMED) {
             throw new CustomExceptions.InvalidSeatStatusException(
-                    "Seat must be in HELD status to confirm. Current status: " + seat.getStatus()
+                    "Seat is already confirmed."
+            );
+        }
+        if (seat.getStatus() == Seat.SeatStatus.BLOCKED) {
+            throw new CustomExceptions.InvalidSeatStatusException(
+                    "Seat is blocked and cannot be confirmed."
             );
         }
 
         seat.setStatus(Seat.SeatStatus.CONFIRMED);
         seat.setHoldTime(null);
+        seat.setHeldByUserId(null);
 
         seat = seatRepository.save(seat);
 

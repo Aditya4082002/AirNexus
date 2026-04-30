@@ -8,6 +8,7 @@ import com.airnexus.flight_service.repository.FlightRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +50,7 @@ public class FlightServiceImpl implements FlightService {
     }
 
     @Override
+    @Cacheable(value = "flight", key = "#id")
     public FlightDTO getFlightById(String id) {
         Flight flight = flightRepository.findById(id)
                 .orElseThrow(() -> new CustomExceptions.FlightNotFoundException(
@@ -93,7 +95,10 @@ public class FlightServiceImpl implements FlightService {
     }
 
     @Override
-    @CacheEvict(value = "flights", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "flights", allEntries = true),
+            @CacheEvict(value = "flight", key = "#id")
+    })
     public FlightDTO updateFlight(String id, FlightDTO dto) {
         Flight flight = flightRepository.findById(id)
                 .orElseThrow(() -> new CustomExceptions.FlightNotFoundException(

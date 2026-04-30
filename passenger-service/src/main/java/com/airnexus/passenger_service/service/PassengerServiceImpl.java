@@ -1,11 +1,14 @@
 package com.airnexus.passenger_service.service;
 
 
+import com.airnexus.passenger_service.client.BookingClient;
+import com.airnexus.passenger_service.client.SeatClient;
 import com.airnexus.passenger_service.dto.PassengerDTO;
 import com.airnexus.passenger_service.entity.PassengerInfo;
 import com.airnexus.passenger_service.exception.CustomExceptions;
 import com.airnexus.passenger_service.repository.PassengerRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,11 +18,14 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PassengerServiceImpl implements PassengerService {
 
     private final PassengerRepository passengerRepository;
+    private final SeatClient seatClient;
+    private final BookingClient bookingClient;
 
     @Override
     @Transactional
@@ -81,6 +87,19 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     @Override
+    public List<PassengerDTO> getPassengersByPnr(String pnrCode) {
+        com.airnexus.passenger_service.client.dto.BookingDTO booking = bookingClient.getBookingByPnr(pnrCode);
+        if (booking == null || booking.getBookingId() == null) {
+            throw new CustomExceptions.PassengerNotFoundException(
+                    "No booking found for PNR: " + pnrCode
+            );
+        }
+        return passengerRepository.findByBookingId(booking.getBookingId()).stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public PassengerDTO updatePassenger(String id, PassengerDTO dto) {
         PassengerInfo passenger = passengerRepository.findById(id)
@@ -110,10 +129,27 @@ public class PassengerServiceImpl implements PassengerService {
                         "Passenger not found with ID: " + passengerId
                 ));
 
+        // If passenger already has a different seat, release it back to AVAILABLE
+        String previousSeatId = passenger.getSeatId();
+        if (previousSeatId != null && !previousSeatId.equals(seatId)) {
+            try {
+                seatClient.releaseSeat(previousSeatId);
+                log.info("Released previous seat {} for passenger {}", previousSeatId, passengerId);
+            } catch (Exception e) {
+                log.warn("Could not release previous seat {}: {}", previousSeatId, e.getMessage());
+            }
+        }
+
+        // Confirm the new seat directly.
+        // SeatServiceImpl.confirmSeat() now accepts both AVAILABLE and HELD,
+        // so no gateway-dependent holdSeat call is needed here.
+        seatClient.confirmSeat(seatId);
+        log.info("Confirmed seat {} for passenger {}", seatId, passengerId);
+
         passenger.setSeatId(seatId);
         passenger.setSeatNumber(seatNumber);
-
         passenger = passengerRepository.save(passenger);
+
         return mapToDTO(passenger);
     }
 
@@ -170,7 +206,6 @@ public class PassengerServiceImpl implements PassengerService {
     // ============ HELPER METHODS ============
 
     private void validatePassengerData(PassengerDTO dto) {
-        // Check passport expiry (must be valid for at least 6 months)
         if (dto.getPassportExpiry() != null) {
             LocalDate sixMonthsFromNow = LocalDate.now().plusMonths(6);
             if (dto.getPassportExpiry().isBefore(sixMonthsFromNow)) {
@@ -180,7 +215,6 @@ public class PassengerServiceImpl implements PassengerService {
             }
         }
 
-        // Validate age for infant (under 2 years)
         int age = Period.between(dto.getDateOfBirth(), LocalDate.now()).getYears();
         if (age < 2 && dto.getPassportNumber() == null) {
             throw new CustomExceptions.InvalidPassportException(

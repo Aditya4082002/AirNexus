@@ -2,9 +2,10 @@ package com.airnexus.flight_service.dto;
 
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.io.Serializable;
 
 @Data
-public class FlightDTO {
+public class FlightDTO implements Serializable{
     private String flightId;
     private String flightNumber;
     private String airlineId;
