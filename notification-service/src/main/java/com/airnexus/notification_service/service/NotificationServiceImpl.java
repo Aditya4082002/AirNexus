@@ -73,7 +73,7 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setType(Notification.NotificationType.BOOKING_CONFIRMED);
         notification.setTitle("Booking Confirmed");
         notification.setMessage("Your booking " + pnr + " has been confirmed!");
-        notification.setChannel(Notification.NotificationChannel.APP);
+        notification.setChannel(Notification.NotificationChannel.ALL);
         notification.setRelatedBookingId(bookingId);
         notification.setRecipientEmail(email);
         notification.setRecipientPhone(phone);
@@ -81,11 +81,13 @@ public class NotificationServiceImpl implements NotificationService {
 
         // Email
         if (email != null && !email.isEmpty()) {
+            System.out.println("📧 Sending email to: " + email);//debug
             emailService.sendBookingConfirmation(email, pnr, flightDetails);
         }
 
         // SMS
         if (phone != null && !phone.isEmpty()) {
+            System.out.println("📱 Sending SMS to: " + phone);//debugs
             smsService.sendBookingConfirmationSms(phone, pnr);
         }
     }
@@ -97,7 +99,7 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setType(Notification.NotificationType.PAYMENT_SUCCESS);
         notification.setTitle("Payment Successful");
         notification.setMessage("Payment of ₹" + amount + " received successfully!");
-        notification.setChannel(Notification.NotificationChannel.APP);
+        notification.setChannel(Notification.NotificationChannel.ALL);
         notification.setRelatedBookingId(bookingId);
         notification.setRecipientEmail(email);
         notificationRepository.save(notification);
@@ -115,7 +117,7 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setType(Notification.NotificationType.CHECKIN_REMINDER);
         notification.setTitle("Check-in Reminder");
         notification.setMessage("Your flight " + flightNumber + " departs in 24 hours. Check-in now!");
-        notification.setChannel(Notification.NotificationChannel.APP);
+        notification.setChannel(Notification.NotificationChannel.ALL);
         notification.setRelatedBookingId(bookingId);
         notification.setRecipientEmail(email);
         notification.setRecipientPhone(phone);
@@ -154,7 +156,7 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setType(Notification.NotificationType.CANCELLATION);
         notification.setTitle("Booking Cancelled");
         notification.setMessage("Your booking " + pnr + " has been cancelled. Refund will be processed in 5-7 days.");
-        notification.setChannel(Notification.NotificationChannel.APP);
+        notification.setChannel(Notification.NotificationChannel.ALL);
         notification.setRelatedBookingId(bookingId);
         notification.setRecipientEmail(email);
         notificationRepository.save(notification);
