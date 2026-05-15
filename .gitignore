@@ -1,0 +1,4 @@
+.env
+*.env
+
+**/application-dev.properties

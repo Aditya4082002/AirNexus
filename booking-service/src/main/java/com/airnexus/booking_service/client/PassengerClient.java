@@ -1,11 +1,12 @@
 package com.airnexus.booking_service.client;
 
+import com.airnexus.booking_service.client.fallback.PassengerClientFallback;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@FeignClient(name = "passenger-service")
+@FeignClient(name = "passenger-service", fallback = PassengerClientFallback.class)
 public interface PassengerClient {
 
     @PostMapping("/api/passengers/bulk")

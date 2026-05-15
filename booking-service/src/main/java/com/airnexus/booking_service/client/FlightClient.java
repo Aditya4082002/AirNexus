@@ -1,9 +1,10 @@
 package com.airnexus.booking_service.client;
 
+import com.airnexus.booking_service.client.fallback.FlightClientFallback;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
-@FeignClient(name = "flight-service")
+@FeignClient(name = "flight-service", fallback = FlightClientFallback.class)
 public interface FlightClient {
 
     @GetMapping("/api/flights/{id}")

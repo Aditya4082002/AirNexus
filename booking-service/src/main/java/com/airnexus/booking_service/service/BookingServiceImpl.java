@@ -28,7 +28,6 @@ public class BookingServiceImpl implements BookingService {
     private final FlightClient flightClient;
     private final SeatClient seatClient;
     private final PassengerClient passengerClient;
-    private final NotificationClient notificationClient;
     private final NotificationPublisher notificationPublisher;
 
     @Override

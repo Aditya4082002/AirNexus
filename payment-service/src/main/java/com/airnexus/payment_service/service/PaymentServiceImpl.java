@@ -8,6 +8,7 @@ import com.airnexus.payment_service.dto.PaymentRequest;
 import com.airnexus.payment_service.dto.PaymentResponse;
 import com.airnexus.payment_service.entity.Payment;
 import com.airnexus.payment_service.exception.CustomExceptions;
+import com.airnexus.payment_service.publisher.NotificationPublisher;
 import com.airnexus.payment_service.repository.PaymentRepository;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
@@ -32,6 +33,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final RazorpayClient razorpayClient;
     private final BookingClient bookingClient;
     private final NotificationClient notificationClient;
+    private final NotificationPublisher notificationPublisher;
 
     @Value("${razorpay.key.id}")
     private String razorpayKeyId;
@@ -117,13 +119,11 @@ public class PaymentServiceImpl implements PaymentService {
         bookingClient.confirmBooking(payment.getBookingId(), payment.getPaymentId());
 
         // Send payment success notification
-        PaymentNotificationRequest notificationRequest = new PaymentNotificationRequest(
+        notificationPublisher.publishPaymentSuccess(
                 payment.getUserId(),
-                null, // Email will be fetched from booking
                 payment.getBookingId(),
                 payment.getAmount()
         );
-        notificationClient.sendPaymentSuccessNotification(notificationRequest);
 
         return mapToDTO(payment);
     }

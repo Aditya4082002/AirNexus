@@ -4,6 +4,7 @@ import com.airnexus.flight_service.dto.FlightDTO;
 import com.airnexus.flight_service.dto.FlightSearchRequest;
 import com.airnexus.flight_service.entity.Flight;
 import com.airnexus.flight_service.exception.CustomExceptions;
+import com.airnexus.flight_service.publisher.NotificationPublisher;
 import com.airnexus.flight_service.repository.FlightRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 public class FlightServiceImpl implements FlightService {
 
     private final FlightRepository flightRepository;
+    private final NotificationPublisher notificationPublisher;
 
     @Override
     @CacheEvict(value = "flights", allEntries = true)
@@ -124,6 +126,16 @@ public class FlightServiceImpl implements FlightService {
 
         flight.setStatus(status);
         flight = flightRepository.save(flight);
+
+        //only notify if flight is delayed
+        if (status == Flight.FlightStatus.DELAYED) {
+            notificationPublisher.publishFlightDelay(
+                    flight.getFlightId(),
+                    flight.getFlightNumber(),
+                    flight.getDepartureTime().toString()
+            );
+        }
+
         return mapToDTO(flight);
     }
 
