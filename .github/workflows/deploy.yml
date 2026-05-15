@@ -35,10 +35,13 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Grant execute permission to mvnw
+        run: chmod +x ${{ matrix.service.name }}/mvnw
+
       - name: Build JAR
         run: |
           cd ${{ matrix.service.name }}
-          ./mvnw clean package -DskipTests -q
+          ./mvnw clean package -DskipTests -q -Dspring.profiles.active=prod
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
