@@ -35,11 +35,6 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Copy prod properties into service
-        run: |
-          cp ${{ matrix.service.name }}/application-prod.properties \
-             ${{ matrix.service.name }}/src/main/resources/application-prod.properties
-
       - name: Build JAR
         run: |
           cd ${{ matrix.service.name }}
