@@ -82,6 +82,7 @@ services:
     restart: always
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      SPRING_APPLICATION_JSON: '{"spring.profiles.active":"prod"}'
     ports:
       - "8761:8761"
     networks:
