@@ -80,6 +80,8 @@ services:
     image: ${DOCKERHUB_USERNAME}/airnexus-eureka-server:latest
     container_name: airnexus-eureka
     restart: always
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
     ports:
       - "8761:8761"
     networks:
